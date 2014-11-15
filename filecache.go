@@ -19,7 +19,7 @@ const (
 	expire    = 8 * time.Hour // Hours to keep the cache
 )
 
-func SetCache(key string, data interface{}) error {
+func Set(key string, data interface{}) error {
 
 	clean(key)
 
@@ -48,7 +48,7 @@ func SetCache(key string, data interface{}) error {
 	return nil
 }
 
-func GetCache(key string, dst interface{}) error {
+func Get(key string, dst interface{}) error {
 
 	pattern := filepath.Join(cache_dir, "cache."+key+".*")
 	files, err := filepath.Glob(pattern)
@@ -116,7 +116,7 @@ func serialize(src interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// unserialize decodes a value using binary.
+// deserialize decodes a value using binary.
 func deserialize(src []byte, dst interface{}) error {
 	buf := bytes.NewReader(src)
 	if err := gob.NewDecoder(buf).Decode(dst); err != nil {
