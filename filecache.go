@@ -1,4 +1,4 @@
-package library
+package filecache
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	cache_dir = "src/cache"
+	cache_dir = "src/cache"   // Cache directory
 	expire    = 8 * time.Hour // Hours to keep the cache
 )
 
@@ -93,7 +93,7 @@ func Get(key string, dst interface{}) error {
 		}
 	}
 
-	log.Println("Accessing cache: ", key)
+	log.Println("Accessing filecache: ", key)
 	return nil
 }
 
