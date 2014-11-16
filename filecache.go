@@ -1,3 +1,7 @@
+//Copyright 2014 Mahendra Kathirvel. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package filecache
 
 import (
@@ -23,7 +27,7 @@ func Set(key string, data interface{}) error {
 
 	clean(key)
 
-	file := "cache." + key + "." + strconv.FormatInt(time.Now().Add(expire).Unix(), 10)
+	file := "filecache." + key + "." + strconv.FormatInt(time.Now().Add(expire).Unix(), 10)
 	fpath := filepath.Join(cache_dir, file)
 
 	serialized, err := serialize(data)
@@ -50,7 +54,7 @@ func Set(key string, data interface{}) error {
 
 func Get(key string, dst interface{}) error {
 
-	pattern := filepath.Join(cache_dir, "cache."+key+".*")
+	pattern := filepath.Join(cache_dir, "filecache."+key+".*")
 	files, err := filepath.Glob(pattern)
 	if len(files) == 0 || err != nil {
 		return errors.New("filecache: no cache file found")
@@ -98,7 +102,7 @@ func Get(key string, dst interface{}) error {
 }
 
 func clean(key string) {
-	pattern := filepath.Join(cache_dir, "cache."+key+".*")
+	pattern := filepath.Join(cache_dir, "filecache."+key+".*")
 	files, _ := filepath.Glob(pattern)
 	for _, file := range files {
 		if _, err := os.Stat(file); err == nil {
