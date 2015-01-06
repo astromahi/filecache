@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,11 +20,14 @@ import (
 )
 
 const (
-	cache_dir = "src/cache"   // Cache directory
+	cache_dir = "/tmp"        // Cache directory
 	expire    = 8 * time.Hour // Hours to keep the cache
 )
 
 func Set(key string, data interface{}) error {
+
+	t1 := time.Now()
+	key = regexp.MustCompile("[^a-zA-Z0-9_-]").ReplaceAllLiteralString(key, "")
 
 	clean(key)
 
@@ -49,18 +53,24 @@ func Set(key string, data interface{}) error {
 	}
 	defer fmutex.Unlock()
 
+	t2 := time.Now()
+	log.Println("Set filecache: ", key, " : ", t2.Sub(t1))
+
 	return nil
 }
 
 func Get(key string, dst interface{}) error {
 
+	t1 := time.Now()
+	key = regexp.MustCompile("[^a-zA-Z0-9_-]").ReplaceAllLiteralString(key, "")
+
 	pattern := filepath.Join(cache_dir, "filecache."+key+".*")
 	files, err := filepath.Glob(pattern)
-	if len(files) == 0 || err != nil {
+	if len(files) < 1 || err != nil {
 		return errors.New("filecache: no cache file found")
 	}
 
-	if _, err := os.Stat(files[0]); err != nil {
+	if _, err = os.Stat(files[0]); err != nil {
 		return err
 	}
 
@@ -70,17 +80,18 @@ func Get(key string, dst interface{}) error {
 	}
 	defer fp.Close()
 
-	buf := make([]byte, 128)
 	var serialized []byte
+	buf := make([]byte, 128)
 	for {
-		_, err := fp.Read(buf)
+		var n int
+		n, err = fp.Read(buf)
+		serialized = append(serialized, buf[0:n]...)
 		if err != nil || err == io.EOF {
 			break
 		}
-		serialized = append(serialized, buf[0:]...)
 	}
 
-	if err := deserialize(serialized, dst); err != nil {
+	if err = deserialize(serialized, dst); err != nil {
 		return err
 	}
 
@@ -91,13 +102,14 @@ func Get(key string, dst interface{}) error {
 		}
 
 		if exptime < time.Now().Unix() {
-			if _, err := os.Stat(file); err == nil {
+			if _, err = os.Stat(file); err == nil {
 				os.Remove(file)
 			}
 		}
 	}
 
-	log.Println("Accessing filecache: ", key)
+	t2 := time.Now()
+	log.Println("Get filecache: ", key, " : ", t2.Sub(t1))
 	return nil
 }
 
