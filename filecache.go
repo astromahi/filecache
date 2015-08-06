@@ -61,7 +61,7 @@ func Set(key string, data interface{}) error {
 
 func Get(key string, dst interface{}) error {
 
-	t1 := time.Now()
+	t:= time.Now()
 	key = regexp.MustCompile("[^a-zA-Z0-9_-]").ReplaceAllLiteralString(key, "")
 
 	pattern := filepath.Join(cache_dir, "filecache."+key+".*")
@@ -81,7 +81,7 @@ func Get(key string, dst interface{}) error {
 	defer fp.Close()
 
 	var serialized []byte
-	buf := make([]byte, 128)
+	buf := make([]byte, 1024)
 	for {
 		var n int
 		n, err = fp.Read(buf)
@@ -108,8 +108,7 @@ func Get(key string, dst interface{}) error {
 		}
 	}
 
-	t2 := time.Now()
-	log.Println("Get filecache: ", key, " : ", t2.Sub(t1))
+	log.Println("Get filecache: ", key, " : ", time.Since(t))
 	return nil
 }
 
